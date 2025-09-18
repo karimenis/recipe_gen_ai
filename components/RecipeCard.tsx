@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Recipe } from '../types';
 import { ChefHatIcon } from './icons/ChefHatIcon';
@@ -10,6 +9,13 @@ interface RecipeCardProps {
 const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 ease-in-out flex flex-col">
+      {recipe.imageUrl ? (
+        <img src={recipe.imageUrl} alt={recipe.recipeName} className="w-full h-56 object-cover" />
+      ) : (
+        <div className="w-full h-56 bg-gray-200 flex items-center justify-center" aria-label="Image placeholder">
+          <ChefHatIcon className="w-16 h-16 text-gray-400" />
+        </div>
+      )}
       <div className="p-6">
         <h3 className="text-2xl font-bold text-gray-800 mb-2">{recipe.recipeName}</h3>
         <p className="text-gray-600 mb-4">{recipe.description}</p>

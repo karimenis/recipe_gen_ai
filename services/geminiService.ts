@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { Recipe } from '../types';
 
@@ -63,7 +62,33 @@ export const generateRecipes = async (ingredients: string): Promise<Recipe[]> =>
     const parsedJson = JSON.parse(jsonText);
     
     if (parsedJson && Array.isArray(parsedJson.recipes)) {
-        return parsedJson.recipes as Recipe[];
+        const recipes: Omit<Recipe, 'imageUrl'>[] = parsedJson.recipes;
+
+        const recipesWithImages = await Promise.all(
+          recipes.map(async (recipe) => {
+            try {
+              const imageResponse = await ai.models.generateImages({
+                model: 'imagen-4.0-generate-001',
+                prompt: `A delicious, high-quality, professional photograph of a plate of "${recipe.recipeName}". ${recipe.description}`,
+                config: {
+                  numberOfImages: 1,
+                  outputMimeType: 'image/jpeg',
+                  aspectRatio: '4:3',
+                },
+              });
+    
+              const base64ImageBytes = imageResponse.generatedImages[0].image.imageBytes;
+              const imageUrl = `data:image/jpeg;base64,${base64ImageBytes}`;
+              return { ...recipe, imageUrl };
+
+            } catch (imageError) {
+              console.error(`Error generating image for ${recipe.recipeName}:`, imageError);
+              return { ...recipe, imageUrl: undefined };
+            }
+          })
+        );
+        return recipesWithImages;
+
     } else {
         console.error("Unexpected JSON structure:", parsedJson);
         throw new Error("Failed to parse recipes from API response.");
